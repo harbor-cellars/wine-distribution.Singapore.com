@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Products - Harbor Cellars</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: #0d0d0d;
+      color: #fff;
+      display: flex;
+      min-height: 100vh;
+    }
+    a { text-decoration: none; color: inherit; }
+
+    /* Sidebar */
+    .sidebar {
+      width: 220px;
+      background: #111;
+      display: flex;
+      flex-direction: column;
+      padding: 30px 20px;
+      gap: 30px;
+    }
+    .sidebar h2 { color: #f39c12; font-size: 1.5rem; }
+    .sidebar ul { list-style: none; display: flex; flex-direction: column; gap: 15px; }
+    .sidebar ul li a {
+      padding: 10px 15px;
+      border-radius: 8px;
+      transition: transform 0.3s, background 0.3s;
+      display: block;
+      color: #fff;
+    }
+    .sidebar ul li a:hover { background: #f39c12; color: #000; transform: scale(1.05); }
+
+    /* Main */
+    .main-content {
+      flex: 1;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+      overflow-y: auto;
+    }
+    .main-content h1 { font-size: 2rem; color: #f39c12; }
+
+    /* Table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #111;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    th, td {
+      padding: 15px;
+      text-align: left;
+      border-bottom: 1px solid #222;
+    }
+    th { background: #222; }
+    tr:hover { background: #222; }
+    td img {
+      width: 60px;
+      height: 60px;
+      border-radius: 8px;
+      object-fit: cover;
+    }
+
+    /* Buttons */
+    .btn {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      transition: transform 0.3s;
+    }
+    .btn-add { background: #f39c12; color: #000; margin-bottom: 20px; }
+    .btn-edit { background: #3498db; color: #fff; }
+    .btn-delete { background: #e74c3c; color: #fff; }
+    .btn:hover { transform: scale(1.05); }
+
+    /* Modal */
+    .modal {
+      position: fixed;
+      top:0; left:0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.8);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .modal.active { display: flex; }
+    .modal-content {
+      background: #111;
+      padding: 30px;
+      border-radius: 16px;
+      width: 400px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .modal-content input, .modal-content textarea {
+      padding: 12px;
+      border-radius: 8px;
+      border: none;
+      background: #222;
+      color: #fff;
+    }
+    .modal-content button { margin-top: 10px; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .sidebar { width: 100%; flex-direction: row; overflow-x: auto; padding: 20px; gap: 15px; }
+      .sidebar ul { flex-direction: row; gap: 15px; }
+      .main-content { padding: 20px; }
+      table, th, td { font-size: 0.9rem; }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2>Admin Panel</h2>
+    <ul>
+      <li><a href="dashboard.html">Dashboard</a></li>
+      <li><a href="products.html">Products</a></li>
+      <li><a href="orders.html">Orders</a></li>
+      <li><a href="users.html">Users</a></li>
+      <li><a href="settings.html">Settings</a></li>
+    </ul>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <h1>Products Management</h1>
+    <button class="btn btn-add" id="addProductBtn">Add Product</button>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Image</th>
+          <th>Name</th>
+          <th>Price</th>
+          <th>Stock</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="productTable"></tbody>
+    </table>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal" id="productModal">
+    <div class="modal-content">
+      <h2 id="modalTitle">Add Product</h2>
+      <input type="text" id="productName" placeholder="Product Name">
+      <input type="text" id="productImage" placeholder="Image URL">
+      <input type="number" id="productPrice" placeholder="Price">
+      <input type="number" id="productStock" placeholder="Stock">
+      <textarea id="productDescription" placeholder="Description"></textarea>
+      <button class="btn btn-add" id="saveProductBtn">Save</button>
+      <button class="btn btn-delete" id="closeModalBtn">Cancel</button>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/gsap@3.12.2/dist/gsap.min.js"></script>
+
+  <script>
+    window.addEventListener("DOMContentLoaded", () => {
+      gsap.from(".main-content h1", { duration: 1, opacity: 0, y: -50 });
+
+      const API_URL = 'https://68e5c90621dd31f22cc2f478.mockapi.io/v1/products';
+      let products = [];
+      let editId = null;
+
+      const productTable = document.getElementById("productTable");
+      const productModal = document.getElementById("productModal");
+      const modalTitle = document.getElementById("modalTitle");
+      const addProductBtn = document.getElementById("addProductBtn");
+      const closeModalBtn = document.getElementById("closeModalBtn");
+      const saveProductBtn = document.getElementById("saveProductBtn");
+
+      const productName = document.getElementById("productName");
+      const productImage = document.getElementById("productImage");
+      const productPrice = document.getElementById("productPrice");
+      const productStock = document.getElementById("productStock");
+      const productDescription = document.getElementById("productDescription");
+
+      async function fetchProducts() {
+        try {
+          const response = await fetch(API_URL);
+          products = await response.json();
+          renderTable();
+        } catch (error) {
+          alert("Failed to load products.");
+        }
+      }
+
+      function renderTable() {
+        productTable.innerHTML = "";
+        products.forEach(p => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td><img src="${p.imageUrl || 'https://via.placeholder.com/60'}" alt="${p.name}"></td>
+            <td>${p.name}</td>
+            <td>$${p.price}</td>
+            <td>${p.stock}</td>
+            <td>
+              <button class="btn btn-edit" onclick="editProduct('${p.id}')">Edit</button>
+              <button class="btn btn-delete" onclick="deleteProduct('${p.id}')">Delete</button>
+            </td>
+          `;
+          productTable.appendChild(row);
+        });
+      }
+
+      function openModal() {
+        productModal.classList.add("active");
+      }
+
+      function closeModal() {
+        productModal.classList.remove("active");
+        productName.value = "";
+        productImage.value = "";
+        productPrice.value = "";
+        productStock.value = "";
+        productDescription.value = "";
+        editId = null;
+      }
+
+      addProductBtn.addEventListener("click", () => {
+        modalTitle.textContent = "Add Product";
+        openModal();
+      });
+
+      closeModalBtn.addEventListener("click", closeModal);
+
+      async function saveProduct() {
+        const name = productName.value.trim();
+        const imageUrl = productImage.value.trim();
+        const price = parseFloat(productPrice.value);
+        const stock = parseInt(productStock.value);
+        const description = productDescription.value.trim();
+
+        if (!name || isNaN(price) || isNaN(stock)) {
+          alert("Please fill valid product info!");
+          return;
+        }
+
+        const productData = { name, imageUrl, price, stock, description };
+
+        try {
+          if (editId) {
+            await fetch(`${API_URL}/${editId}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(productData)
+            });
+          } else {
+            await fetch(API_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(productData)
+            });
+          }
+          await fetchProducts();
+          closeModal();
+        } catch {
+          alert("Error saving product.");
+        }
+      }
+
+      saveProductBtn.addEventListener("click", saveProduct);
+
+      window.editProduct = function(id) {
+        editId = id;
+        const p = products.find(x => x.id === id);
+        if (p) {
+          modalTitle.textContent = "Edit Product";
+          productName.value = p.name;
+          productImage.value = p.imageUrl || "";
+          productPrice.value = p.price;
+          productStock.value = p.stock;
+          productDescription.value = p.description || "";
+          openModal();
+        }
+      };
+
+      window.deleteProduct = async function(id) {
+        if (confirm("Delete this product?")) {
+          await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+          fetchProducts();
+        }
+      };
+
+      fetchProducts();
+    });
+  </script>
+</body>
+</html>

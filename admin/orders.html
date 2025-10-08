@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Orders - Harbor Cellars</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+
+  <!-- GSAP -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.16.0/dist/gsap.min.js"></script>
+
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: #0d0d0d;
+      color: #fff;
+      display: flex;
+      min-height: 100vh;
+    }
+    a { text-decoration: none; color: inherit; }
+
+    /* --- Sidebar --- */
+    .sidebar {
+      width: 220px;
+      background: #111;
+      display: flex;
+      flex-direction: column;
+      padding: 30px 20px;
+      gap: 30px;
+    }
+    .sidebar h2 { color: #f39c12; font-size: 1.5rem; }
+    .sidebar ul { list-style: none; display: flex; flex-direction: column; gap: 15px; }
+    .sidebar ul li a {
+      padding: 10px 15px;
+      border-radius: 8px;
+      transition: transform 0.3s, background 0.3s;
+      display: block;
+      color: #fff;
+    }
+    .sidebar ul li a:hover { background: #f39c12; color: #000; transform: scale(1.05); }
+
+    /* --- Main Content --- */
+    .main-content {
+      flex: 1;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+      overflow-y: auto;
+    }
+
+    /* --- Header --- */
+    .main-content h1 { font-size: 2rem; margin-bottom: 20px; color: #f39c12; }
+
+    /* --- Orders Table --- */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #111;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    th, td {
+      padding: 15px;
+      text-align: left;
+      border-bottom: 1px solid #222;
+    }
+    th { background: #222; }
+    tr:hover { background: #222; transform: scale(1.01); transition: 0.2s; }
+
+    /* --- Buttons --- */
+    .btn {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      transition: transform 0.3s;
+    }
+    .btn-view { background: #3498db; color: #fff; }
+    .btn-update { background: #f39c12; color: #000; }
+    .btn:hover { transform: scale(1.05); }
+
+    /* --- Status Badges --- */
+    .status {
+      padding: 5px 10px;
+      border-radius: 12px;
+      font-weight: bold;
+      text-align: center;
+      display: inline-block;
+      min-width: 80px;
+    }
+    .pending { background: #f39c12; color: #000; }
+    .shipped { background: #3498db; color: #fff; }
+    .delivered { background: #2ecc71; color: #fff; }
+    .cancelled { background: #e74c3c; color: #fff; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .sidebar { width: 100%; flex-direction: row; overflow-x: auto; padding: 20px; gap: 15px; }
+      .sidebar ul { flex-direction: row; gap: 15px; }
+      .main-content { padding: 20px; }
+      table, th, td { font-size: 0.9rem; }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2>Admin Panel</h2>
+    <ul>
+      <li><a href="dashboard.html">Dashboard</a></li>
+      <li><a href="products.html">Products</a></li>
+      <li><a href="orders.html">Orders</a></li>
+      <li><a href="users.html">Users</a></li>
+      <li><a href="settings.html">Settings</a></li>
+    </ul>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <h1>Orders Management</h1>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Order ID</th>
+          <th>Customer</th>
+          <th>Products</th>
+          <th>Total ($)</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="ordersTable">
+        <!-- Dynamic rows here -->
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    // GSAP animation
+    gsap.from(".main-content h1", { duration: 1, opacity: 0, y: -50 });
+    
+    // Mock Orders Data
+    let orders = [
+      { id:101, customer:"John Doe", products:"Red Wine x2, White Wine x1", total:145, status:"pending" },
+      { id:102, customer:"Jane Smith", products:"Rose Wine x3", total:165, status:"shipped" },
+      { id:103, customer:"Alice Johnson", products:"Sparkling Wine x1", total:60, status:"delivered" },
+      { id:104, customer:"Bob Brown", products:"Red Wine x1, Rose Wine x1", total:105, status:"cancelled" }
+    ];
+
+    const ordersTable = document.getElementById("ordersTable");
+
+    function renderOrders() {
+      ordersTable.innerHTML = "";
+      orders.forEach(order => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${order.id}</td>
+          <td>${order.customer}</td>
+          <td>${order.products}</td>
+          <td>$${order.total}</td>
+          <td><span class="status ${order.status}">${order.status.charAt(0).toUpperCase() + order.status.slice(1)}</span></td>
+          <td>
+            <button class="btn btn-view" onclick="viewOrder(${order.id})">View</button>
+            <button class="btn btn-update" onclick="updateStatus(${order.id})">Update</button>
+          </td>
+        `;
+        ordersTable.appendChild(row);
+      });
+    }
+
+    function viewOrder(id) {
+      const order = orders.find(o => o.id === id);
+      alert(`Order Details:\nCustomer: ${order.customer}\nProducts: ${order.products}\nTotal: $${order.total}\nStatus: ${order.status}`);
+    }
+
+    function updateStatus(id) {
+      const order = orders.find(o => o.id === id);
+      const newStatus = prompt("Update status (pending/shipped/delivered/cancelled):", order.status);
+      if(newStatus && ["pending","shipped","delivered","cancelled"].includes(newStatus.toLowerCase())) {
+        order.status = newStatus.toLowerCase();
+        renderOrders();
+      } else {
+        alert("Invalid status!");
+      }
+    }
+
+    // Initial render
+    renderOrders();
+  </script>
+</body>
+</html>

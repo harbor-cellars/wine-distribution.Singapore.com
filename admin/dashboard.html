@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - Harbor Cellars</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+
+  <!-- GSAP -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.16.0/dist/gsap.min.js"></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: #0d0d0d;
+      color: #fff;
+      display: flex;
+      min-height: 100vh;
+    }
+    a { text-decoration: none; color: inherit; }
+
+    /* --- Sidebar --- */
+    .sidebar {
+      width: 220px;
+      background: #111;
+      display: flex;
+      flex-direction: column;
+      padding: 30px 20px;
+      gap: 30px;
+    }
+    .sidebar h2 {
+      color: #f39c12;
+      margin-bottom: 20px;
+      font-size: 1.5rem;
+    }
+    .sidebar ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .sidebar ul li a {
+      padding: 10px 15px;
+      border-radius: 8px;
+      transition: transform 0.3s, background 0.3s;
+      display: block;
+      color: #fff;
+    }
+    .sidebar ul li a:hover {
+      background: #f39c12;
+      color: #000;
+      transform: scale(1.05);
+    }
+
+    /* --- Main Content --- */
+    .main-content {
+      flex: 1;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 40px;
+      overflow-y: auto;
+    }
+
+    /* --- Overview Cards --- */
+    .overview-cards {
+      display: flex;
+      gap: 30px;
+      flex-wrap: wrap;
+    }
+    .card {
+      background: #111;
+      flex: 1 1 200px;
+      padding: 30px;
+      border-radius: 16px;
+      text-align: center;
+      cursor: pointer;
+      perspective: 1000px;
+      transition: transform 0.5s;
+    }
+    .card:hover { transform: rotateY(10deg) scale(1.05); }
+    .card h3 {
+      font-size: 1.2rem;
+      margin-bottom: 15px;
+      color: #f39c12;
+    }
+    .card p {
+      font-size: 2rem;
+      font-weight: bold;
+    }
+
+    /* --- Charts --- */
+    .charts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 30px;
+    }
+    .chart-container {
+      flex: 1 1 400px;
+      background: #111;
+      padding: 30px;
+      border-radius: 16px;
+    }
+
+    /* --- Responsive --- */
+    @media (max-width: 768px) {
+      body { flex-direction: column; }
+      .sidebar { width: 100%; flex-direction: row; overflow-x: auto; padding: 20px; gap: 15px; }
+      .sidebar ul { flex-direction: row; gap: 15px; }
+      .main-content { padding: 20px; }
+      .overview-cards { flex-direction: column; gap: 20px; }
+      .charts { flex-direction: column; gap: 20px; }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2>Admin Panel</h2>
+    <ul>
+      <li><a href="dashboard.html">Dashboard</a></li>
+      <li><a href="products.html">Products</a></li>
+      <li><a href="orders.html">Orders</a></li>
+      <li><a href="users.html">Users</a></li>
+      <li><a href="settings.html">Settings</a></li>
+    </ul>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Overview Cards -->
+    <div class="overview-cards">
+      <div class="card">
+        <h3>Total Products</h3>
+        <p id="totalProducts">0</p>
+      </div>
+      <div class="card">
+        <h3>Total Orders</h3>
+        <p id="totalOrders">0</p>
+      </div>
+      <div class="card">
+        <h3>Total Users</h3>
+        <p id="totalUsers">0</p>
+      </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="charts">
+      <div class="chart-container">
+        <h3>Sales Overview</h3>
+        <canvas id="salesChart"></canvas>
+      </div>
+      <div class="chart-container">
+        <h3>Products Stock</h3>
+        <canvas id="stockChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- JS: GSAP & Charts -->
+  <script>
+    // GSAP animations
+    gsap.from(".overview-cards .card", { duration: 1, opacity: 0, y: 50, stagger: 0.2 });
+    gsap.from(".chart-container", { duration: 1, opacity: 0, y: 50, stagger: 0.2 });
+
+    // Mock Data (replace with API integration)
+    const totalProducts = 120;
+    const totalOrders = 75;
+    const totalUsers = 50;
+
+    document.getElementById("totalProducts").textContent = totalProducts;
+    document.getElementById("totalOrders").textContent = totalOrders;
+    document.getElementById("totalUsers").textContent = totalUsers;
+
+    // Sales Chart
+    const salesCtx = document.getElementById('salesChart').getContext('2d');
+    const salesChart = new Chart(salesCtx, {
+      type: 'line',
+      data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+        datasets: [{
+          label: 'Sales ($)',
+          data: [1200, 1500, 1300, 1700, 1600, 2000],
+          borderColor: '#f39c12',
+          backgroundColor: 'rgba(243, 156, 18, 0.2)',
+          fill: true,
+          tension: 0.3
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { labels: { color: '#fff' } } },
+        scales: {
+          x: { ticks: { color: '#fff' }, grid: { color: '#333' } },
+          y: { ticks: { color: '#fff' }, grid: { color: '#333' } }
+        }
+      }
+    });
+
+    // Stock Chart
+    const stockCtx = document.getElementById('stockChart').getContext('2d');
+    const stockChart = new Chart(stockCtx, {
+      type: 'bar',
+      data: {
+        labels: ['Red Wine', 'White Wine', 'Rose', 'Sparkling'],
+        datasets: [{
+          label: 'Stock',
+          data: [50, 30, 20, 40],
+          backgroundColor: '#f39c12'
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { labels: { color: '#fff' } } },
+        scales: {
+          x: { ticks: { color: '#fff' }, grid: { color: '#333' } },
+          y: { ticks: { color: '#fff' }, grid: { color: '#333' } }
+        }
+      }
+    });
+  </script>
+</body>
+</html>

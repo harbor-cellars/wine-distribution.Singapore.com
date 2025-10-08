@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login - Harbor Cellars</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+
+  <!-- GSAP -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.16.0/dist/gsap.min.js"></script>
+
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(135deg,#0d0d0d,#1a1a1a);
+      color: #fff;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .login-card {
+      background: #111;
+      padding: 50px 40px;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      width: 350px;
+      text-align: center;
+      perspective: 1000px;
+      transition: transform 0.5s;
+    }
+    .login-card:hover { transform: rotateY(10deg) scale(1.05); }
+
+    .login-card h2 {
+      margin-bottom: 30px;
+      color: #f39c12;
+      font-size: 2rem;
+    }
+    .login-card form {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .login-card input {
+      padding: 12px 15px;
+      border-radius: 8px;
+      border: none;
+      font-size: 1rem;
+      background: #222;
+      color: #fff;
+      transition: transform 0.3s;
+    }
+    .login-card input:focus {
+      outline: none;
+      transform: scale(1.02);
+      background: #333;
+    }
+    .login-card button {
+      padding: 12px;
+      border-radius: 8px;
+      border: none;
+      background: #f39c12;
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.3s;
+    }
+    .login-card button:hover { transform: scale(1.05); }
+
+    .error-msg {
+      color: #ff4d4d;
+      font-size: 0.9rem;
+      min-height: 18px; /* keeps layout consistent */
+    }
+
+    @media (max-width: 480px) {
+      .login-card { width: 90%; padding: 40px 20px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="login-card">
+    <h2>Admin Login</h2>
+    <form id="loginForm">
+      <input type="text" id="username" placeholder="Username" required>
+      <input type="password" id="password" placeholder="Password" required>
+      <span class="error-msg" id="errorMsg"></span>
+      <button type="submit">Login</button>
+    </form>
+  </div>
+
+<!-- ✅ Load GSAP before using it -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" integrity="sha512-1ch8u+LMmkgRjEY1nFltw4BkLBPj7T7mW2nYXo6f3m3S2G5oIjR8+hzmtO6x2N3YjT+ge2E3nexk9Yjyc8fFeg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script>
+  // Wait until page is fully loaded
+  window.addEventListener("DOMContentLoaded", () => {
+    // ✅ GSAP animation
+    if (typeof gsap !== "undefined") {
+      gsap.from(".login-card", { duration: 1, opacity: 0, y: -50, ease: "power3.out" });
+    } else {
+      console.error("GSAP failed to load!");
+    }
+
+    // ✅ Login logic
+    const loginForm = document.getElementById("loginForm");
+    const errorMsg = document.getElementById("errorMsg");
+
+    loginForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value.trim();
+      errorMsg.textContent = "";
+
+      if (username.toLowerCase() === "admin" && password === "password123") {
+        // Optional: store login session
+        localStorage.setItem("isLoggedIn", "true");
+        window.location.href = "dashboard.html";
+      } else {
+        errorMsg.textContent = "Invalid username or password!";
+      }
+    });
+  });
+</script>
+
+</body>
+</html>
